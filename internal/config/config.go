@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Grove contributors
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Package config loads Grove's configuration from defaults, an optional YAML
 // file, and environment variables, in that precedence order (env wins).
 package config

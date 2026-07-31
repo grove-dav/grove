@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 Grove contributors
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # grove
 
 Calendar and contacts for ownCloud Infinite Scale — CalDAV/CardDAV, Graph-shaped API, Vue UI
@@ -28,3 +34,16 @@ over file, file wins over defaults.
 task docker:build
 task docker:run
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please also read the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for how to report vulnerabilities.
+
+## License
+
+[Apache License 2.0](LICENSE).
