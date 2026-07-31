@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Grove contributors
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Command grove runs the Grove calendar/contacts service.
 package main
 

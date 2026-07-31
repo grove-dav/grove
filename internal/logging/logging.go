@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Grove contributors
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Package logging configures Grove's structured logger.
 package logging
 

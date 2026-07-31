@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Grove contributors
+//
+// SPDX-License-Identifier: Apache-2.0
+
 // Package server builds and runs Grove's HTTP server.
 package server
 
