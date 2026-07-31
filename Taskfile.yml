@@ -1,0 +1,63 @@
+version: "3"
+
+vars:
+  IMAGE: grove:dev
+
+tasks:
+  build:
+    desc: Build the grove binary
+    cmds:
+      - go build ./...
+
+  run:
+    desc: Run grove locally
+    cmds:
+      - go run ./cmd/grove
+
+  fmt:
+    desc: Check gofmt formatting
+    cmds:
+      - |
+        unformatted=$(gofmt -l .)
+        if [ -n "$unformatted" ]; then
+          echo "$unformatted"
+          exit 1
+        fi
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests with race detector and coverage
+    cmds:
+      - go test ./... -race -cover
+
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run
+
+  tidy:
+    desc: Tidy go.mod/go.sum
+    cmds:
+      - go mod tidy
+
+  check:
+    desc: Run all checks (fmt, vet, lint, test)
+    cmds:
+      - task: fmt
+      - task: vet
+      - task: lint
+      - task: test
+
+  docker:build:
+    desc: Build the docker image
+    cmds:
+      - docker build -t {{.IMAGE}} .
+
+  docker:run:
+    desc: Run the docker image, publishing :8080
+    cmds:
+      - docker run --rm -p 8080:8080 {{.IMAGE}}
