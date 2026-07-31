@@ -1,0 +1,4 @@
+/grove
+/bin/
+*.out
+coverage.txt
