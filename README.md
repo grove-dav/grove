@@ -4,13 +4,16 @@ Calendar and contacts for ownCloud Infinite Scale — CalDAV/CardDAV, Graph-shap
 
 ## Development
 
-Requires Go 1.26.5.
+Requires Go 1.26.5 and [go-task](https://taskfile.dev).
 
 ```sh
-go build ./...
-go test ./...
-go run ./cmd/grove
+task build
+task test
+task run
 ```
+
+Run `task --list-all` for the full list, or `task check` to run fmt/vet/lint/test
+together (what CI runs).
 
 Config is env vars (`GROVE_HTTP_ADDR`, `GROVE_LOG_LEVEL`, `GROVE_OIDC_ISSUER`,
 `GROVE_DB_DSN`) and/or a YAML file passed via `--config grove.yaml`; env wins
@@ -22,6 +25,6 @@ over file, file wins over defaults.
 ## Docker
 
 ```sh
-docker build -t grove:dev .
-docker run --rm -p 8080:8080 grove:dev
+task docker:build
+task docker:run
 ```
