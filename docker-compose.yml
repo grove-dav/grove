@@ -13,17 +13,41 @@
 name: grove
 
 services:
+  # Writes a self-signed certificate for OCIS_DOMAIN and the Traefik config
+  # that serves it. Grove trusts the same file when it talks to the issuer.
+  certs:
+    image: alpine/openssl
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        d=${OCIS_DOMAIN:-ocis.localhost}
+        openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+          -keyout /certs/key.pem -out /certs/cert.pem \
+          -subj "/CN=$$d" -addext "subjectAltName=DNS:$$d"
+        chmod 644 /certs/cert.pem
+        printf '%s\n' 'tls:' '  stores:' '    default:' '      defaultCertificate:' \
+          '        certFile: /certs/cert.pem' '        keyFile: /certs/key.pem' \
+          > /certs/traefik.yml
+    volumes:
+      - certs:/certs
+
   traefik:
     image: traefik:v3.6
     command:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/certs/traefik.yml
       - --entrypoints.websecure.address=:443
       - --entrypoints.websecure.http.tls=true
     ports:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certs:/certs:ro
+    depends_on:
+      certs:
+        condition: service_completed_successfully
     networks:
       default:
         # Lets Grove reach the OIDC issuer under the public hostname.
@@ -57,8 +81,12 @@ services:
     environment:
       GROVE_LOG_LEVEL: debug
       GROVE_OIDC_ISSUER: https://${OCIS_DOMAIN:-ocis.localhost}
+      GROVE_OIDC_CA_FILE: /certs/cert.pem
+    volumes:
+      - certs:/certs:ro
     depends_on:
       - ocis
+      - traefik
     labels:
       traefik.enable: "true"
       # Same-domain path routes for Grove; everything else falls through to oCIS.
@@ -78,5 +106,6 @@ services:
       traefik.http.services.grove.loadbalancer.server.port: "8080"
 
 volumes:
+  certs:
   ocis-config:
   ocis-data:
