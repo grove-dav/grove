@@ -12,7 +12,7 @@ how to run it locally.
 
 ## Prerequisites
 
-- Go 1.26.5
+- Go 1.26.10
 - [go-task](https://taskfile.dev)
 - Docker (only needed for `task docker:*`)
 
