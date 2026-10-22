@@ -1,0 +1,82 @@
+# SPDX-FileCopyrightText: 2026 Grove contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Local dev stack: oCIS and Grove behind one Traefik on the same domain.
+#
+#   docker compose up --build
+#   open https://ocis.localhost  (self-signed cert; admin / admin)
+#
+# Override OCIS_DOMAIN, OCIS_VERSION and IDM_ADMIN_PASSWORD via the environment
+# or a .env file. Not for production.
+
+name: grove
+
+services:
+  traefik:
+    image: traefik:v3.6
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls=true
+    ports:
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      default:
+        # Lets Grove reach the OIDC issuer under the public hostname.
+        aliases:
+          - ${OCIS_DOMAIN:-ocis.localhost}
+
+  ocis:
+    image: owncloud/ocis:${OCIS_VERSION:-8}
+    entrypoint: ["/bin/sh", "-c", "ocis init || true; ocis server"]
+    environment:
+      OCIS_URL: https://${OCIS_DOMAIN:-ocis.localhost}
+      OCIS_INSECURE: "true"
+      OCIS_LOG_LEVEL: info
+      PROXY_TLS: "false"
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      IDM_ADMIN_PASSWORD: ${IDM_ADMIN_PASSWORD:-admin}
+      # Demo users alice, bob, ... for interop testing.
+      IDM_CREATE_DEMO_USERS: "true"
+    volumes:
+      - ocis-config:/etc/ocis
+      - ocis-data:/var/lib/ocis
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.ocis.rule: Host(`${OCIS_DOMAIN:-ocis.localhost}`)
+      traefik.http.routers.ocis.entrypoints: websecure
+      traefik.http.routers.ocis.priority: "1"
+      traefik.http.services.ocis.loadbalancer.server.port: "9200"
+
+  grove:
+    build: .
+    environment:
+      GROVE_LOG_LEVEL: debug
+      GROVE_OIDC_ISSUER: https://${OCIS_DOMAIN:-ocis.localhost}
+    depends_on:
+      - ocis
+    labels:
+      traefik.enable: "true"
+      # Same-domain path routes for Grove; everything else falls through to oCIS.
+      traefik.http.routers.grove.rule: >-
+        Host(`${OCIS_DOMAIN:-ocis.localhost}`) && (
+        PathPrefix(`/dav/calendars/`) ||
+        PathPrefix(`/dav/addressbooks/`) ||
+        PathPrefix(`/dav/principals/`) ||
+        Path(`/.well-known/caldav`) ||
+        Path(`/.well-known/carddav`) ||
+        PathRegexp(`^/graph/v1\.0/me/(calendar|calendars|events|contact|contacts)`) ||
+        PathPrefix(`/web/`) ||
+        Path(`/healthz`) ||
+        Path(`/metrics`))
+      traefik.http.routers.grove.entrypoints: websecure
+      traefik.http.routers.grove.priority: "100"
+      traefik.http.services.grove.loadbalancer.server.port: "8080"
+
+volumes:
+  ocis-config:
+  ocis-data:

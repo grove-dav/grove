@@ -35,6 +35,20 @@ task docker:build
 task docker:run
 ```
 
+## Local stack
+
+`docker-compose.yml` runs oCIS and Grove behind one Traefik on the same
+domain, which Grove requires. Grove's DAV, Graph, `/web/` and ops paths route
+to Grove; everything else goes to oCIS.
+
+```sh
+task stack:up
+```
+
+Then open <https://ocis.localhost> (self-signed certificate, `admin` / `admin`).
+Set `OCIS_DOMAIN`, `OCIS_VERSION` or `IDM_ADMIN_PASSWORD` in the environment
+or a `.env` file to override the defaults. This stack is for development only.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please also read the

@@ -65,3 +65,13 @@ tasks:
     desc: Run the docker image, publishing :8080
     cmds:
       - docker run --rm -p 8080:8080 {{.IMAGE}}
+
+  stack:up:
+    desc: Start oCIS, Grove and Traefik via docker compose
+    cmds:
+      - docker compose up -d --build
+
+  stack:down:
+    desc: Stop the compose stack (add -v to drop oCIS data)
+    cmds:
+      - docker compose down {{.CLI_ARGS}}
