@@ -14,7 +14,7 @@ tasks:
       - go build ./...
 
   run:
-    desc: Run grove locally
+    desc: Run grove locally (needs GROVE_OIDC_ISSUER)
     cmds:
       - go run ./cmd/grove
 
@@ -62,9 +62,9 @@ tasks:
       - docker build -t {{.IMAGE}} .
 
   docker:run:
-    desc: Run the docker image, publishing :8080
+    desc: Run the docker image, publishing :8080 (needs GROVE_OIDC_ISSUER)
     cmds:
-      - docker run --rm -p 8080:8080 {{.IMAGE}}
+      - docker run --rm -p 8080:8080 -e GROVE_OIDC_ISSUER {{.IMAGE}}
 
   stack:up:
     desc: Start oCIS, Grove and Traefik via docker compose

@@ -20,16 +20,23 @@ type Server struct {
 	addr       string
 }
 
-// New builds a Server listening on addr, logging through logger.
-func New(addr string, logger *slog.Logger) *Server {
+// New builds a Server listening on addr, logging through logger. When authn is
+// non-nil, every request passes through it before reaching the router, so
+// paths that aren't registered yet fail closed instead of returning 404.
+func New(addr string, logger *slog.Logger, authn func(http.Handler) http.Handler) *Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", healthzHandler)
 	mux.HandleFunc("GET /metrics", metricsHandler())
 
+	var handler http.Handler = mux
+	if authn != nil {
+		handler = authn(handler)
+	}
+
 	return &Server{
 		httpServer: &http.Server{
 			Addr:    addr,
-			Handler: withRequestLogging(logger, mux),
+			Handler: withRequestLogging(logger, handler),
 		},
 		logger: logger,
 		addr:   addr,

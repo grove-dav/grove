@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/grove-dav/grove/internal/auth"
 	"github.com/grove-dav/grove/internal/config"
 	"github.com/grove-dav/grove/internal/logging"
 	"github.com/grove-dav/grove/internal/server"
@@ -47,6 +48,15 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	srv := server.New(cfg.HTTPAddr, logger)
+	verifier, err := auth.NewOIDCVerifier(auth.OIDCConfig{
+		Issuer:   cfg.OIDCIssuer,
+		Audience: cfg.OIDCAudience,
+		CAFile:   cfg.OIDCCAFile,
+	})
+	if err != nil {
+		return err
+	}
+
+	srv := server.New(cfg.HTTPAddr, logger, auth.Middleware(verifier, logger))
 	return srv.Run(ctx)
 }
