@@ -40,7 +40,7 @@ services:
       PROXY_TLS: "false"
       PROXY_HTTP_ADDR: 0.0.0.0:9200
       IDM_ADMIN_PASSWORD: ${IDM_ADMIN_PASSWORD:-admin}
-      # Demo users alice, bob, ... for interop testing.
+      # Demo users (einstein, marie, katherine, ...) for interop testing.
       IDM_CREATE_DEMO_USERS: "true"
     volumes:
       - ocis-config:/etc/ocis

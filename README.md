@@ -15,18 +15,34 @@ Requires Go 1.26.10 and [go-task](https://taskfile.dev).
 ```sh
 task build
 task test
-task run
+GROVE_OIDC_ISSUER=https://ocis.localhost task run
 ```
 
 Run `task --list-all` for the full list, or `task check` to run fmt/vet/lint/test
 together (what CI runs).
 
-Config is env vars (`GROVE_HTTP_ADDR`, `GROVE_LOG_LEVEL`, `GROVE_OIDC_ISSUER`,
-`GROVE_DB_DSN`) and/or a YAML file passed via `--config grove.yaml`; env wins
+Config is env vars and/or a YAML file passed via `--config grove.yaml`; env wins
 over file, file wins over defaults.
 
-`/healthz` and `/metrics` are served unauthenticated on `GROVE_HTTP_ADDR`
-(default `:8080`).
+| Env var | YAML key | Notes |
+|---|---|---|
+| `GROVE_HTTP_ADDR` | `http_addr` | Listen address, default `:8080` |
+| `GROVE_LOG_LEVEL` | `log_level` | `debug`, `info`, `warn` or `error`, default `info` |
+| `GROVE_OIDC_ISSUER` | `oidc_issuer` | **Required.** The oCIS public URL, which is also the OIDC issuer |
+| `GROVE_OIDC_AUDIENCE` | `oidc_audience` | Optional. If set, tokens must carry it in `aud`; oCIS sets that to the client ID of the requesting app, e.g. `web` |
+| `GROVE_OIDC_CA_FILE` | `oidc_ca_file` | Optional PEM bundle of extra CAs to trust when contacting the issuer |
+| `GROVE_DB_DSN` | `db_dsn` | Not used yet |
+
+## Authentication
+
+Every request needs an `Authorization: Bearer <access token>` header, validated
+against the keys the oCIS identity provider publishes. The exceptions are
+`/healthz`, `/metrics`, `/.well-known/*` and `/web/*`. The token's `sub` claim
+identifies the user.
+
+Grove contacts the issuer on the first authenticated request, and retries after
+a failure, so it can start before oCIS is ready. While the issuer is
+unreachable, authenticated requests get `503`.
 
 ## Docker
 

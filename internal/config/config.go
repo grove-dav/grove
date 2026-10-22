@@ -20,6 +20,12 @@ type Config struct {
 	HTTPAddr   string `yaml:"http_addr"`
 	LogLevel   string `yaml:"log_level"`
 	OIDCIssuer string `yaml:"oidc_issuer"`
+	// OIDCAudience, when set, must appear in the aud claim of access tokens.
+	// oCIS puts the requesting client's ID there (e.g. "web").
+	OIDCAudience string `yaml:"oidc_audience"`
+	// OIDCCAFile is an optional PEM bundle of extra CAs trusted when
+	// contacting the issuer.
+	OIDCCAFile string `yaml:"oidc_ca_file"`
 	DBDSN      string `yaml:"db_dsn"`
 }
 
@@ -57,6 +63,12 @@ func Load(path string) (Config, error) {
 	if v, ok := os.LookupEnv("GROVE_OIDC_ISSUER"); ok {
 		cfg.OIDCIssuer = v
 	}
+	if v, ok := os.LookupEnv("GROVE_OIDC_AUDIENCE"); ok {
+		cfg.OIDCAudience = v
+	}
+	if v, ok := os.LookupEnv("GROVE_OIDC_CA_FILE"); ok {
+		cfg.OIDCCAFile = v
+	}
 	if v, ok := os.LookupEnv("GROVE_DB_DSN"); ok {
 		cfg.DBDSN = v
 	}
@@ -71,6 +83,9 @@ func (cfg Config) Validate() error {
 	}
 	if _, err := logging.ParseLevel(cfg.LogLevel); err != nil {
 		return fmt.Errorf("config: log_level: %w", err)
+	}
+	if cfg.OIDCIssuer == "" {
+		return fmt.Errorf("config: oidc_issuer must be set (GROVE_OIDC_ISSUER)")
 	}
 	return nil
 }
