@@ -10,7 +10,7 @@ Calendar and contacts for ownCloud Infinite Scale — CalDAV/CardDAV, Graph-shap
 
 ## Development
 
-Requires Go 1.26.5 and [go-task](https://taskfile.dev).
+Requires Go 1.26.10 and [go-task](https://taskfile.dev).
 
 ```sh
 task build
